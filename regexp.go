@@ -7,14 +7,14 @@ import (
 )
 
 var (
-	heading, _    = regexp.Compile("(^#{1,6}) (.+)")
-	headingIn, _  = regexp.Compile("^ *- +(#{1,6}) (.+)")
-	list, _       = regexp.Compile("^( *)- (.+)")
-	link, _       = regexp.Compile(`.*(\[.+?\])(\(.+?\)).*`)
-	emphasis, _   = regexp.Compile(`.*(\*.+\*).*|.*(\_.+\_).*`)
-	strong, _     = regexp.Compile(`.*(\*\*.+\*\*).*|.*(\_\_.+\_\_).*`)
-	horizontal, _ = regexp.Compile(`^-{3}|_{3}|\*{3}`)
-	whitespace, _ = regexp.Compile("^( +)(.*)")
+	heading    = regexp.MustCompile(`(^#{1,6}) (.+)`)
+	headingIn  = regexp.MustCompile(`^ *- +(#{1,6}) (.+)`)
+	list       = regexp.MustCompile(`^( *)- (.+)`)
+	link       = regexp.MustCompile(`.*(\[.+?\])(\(.+?\)).*`)
+	emphasis   = regexp.MustCompile(`.*(\*.+\*).*|.*(\_.+\_).*`)
+	strong     = regexp.MustCompile(`.*(\*\*.+\*\*).*|.*(\_\_.+\_\_).*`)
+	horizontal = regexp.MustCompile(`^-{3}|_{3}|\*{3}`)
+	whitespace = regexp.MustCompile(`^( +)(.*)`)
 )
 
 type Type int

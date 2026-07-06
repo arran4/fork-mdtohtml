@@ -47,12 +47,9 @@ func main() {
 		lines = append(lines, convert(line))
 	}
 
-	_, err = writer.WriteString("<body>")
-	check(err)
-	_, err = writer.WriteString(generate(lines))
-	check(err)
-	_, err = writer.WriteString("</body>")
-	check(err)
+	writer.WriteString("<body>")
+	writer.WriteString(generate(lines))
+	writer.WriteString("</body>")
 	err = writer.Flush()
 	check(err)
 }
