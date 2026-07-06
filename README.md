@@ -3,6 +3,14 @@ Mdtohtml is a HTML generator from a Markdown file. This is implemented in Go. Th
 
 The syntax of Markdown follows [CommonMark](https://commonmark.org/) which version is [0.29 (2019-04-06)](https://spec.commonmark.org/). They have playground, [commonmark.js dingus](https://spec.commonmark.org/dingus/), for CommonMark grammar.
 
+## Install
+
+### GitHub Releases
+Download binaries from: https://github.com/mdtohtml/mdtohtml/releases
+
+### Go install
+go install github.com/mdtohtml/mdtohtml@latest
+
 ## Usage
 ```
 $ make mdtohtml & ./mdtohtml <markdown-filename>
