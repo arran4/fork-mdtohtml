@@ -46,7 +46,7 @@ func generate(lines []Line) string {
 				dep := l.dep - lines[i+1].dep
 				for dep > 0 {
 					html += "</ul>"
-					dep -= 1
+					dep--
 				}
 			}
 			// insert </ul> for the end of sublists when a document ends with lists
@@ -54,7 +54,7 @@ func generate(lines []Line) string {
 				dep := l.dep
 				for dep > 0 {
 					html += "</ul>"
-					dep -= 1
+					dep--
 				}
 			}
 

@@ -10,9 +10,9 @@ var (
 	heading, _    = regexp.Compile("(^#{1,6}) (.+)")
 	headingIn, _  = regexp.Compile("^ *- +(#{1,6}) (.+)")
 	list, _       = regexp.Compile("^( *)- (.+)")
-	link, _       = regexp.Compile(".*(\\[.+?\\])(\\(.+?\\)).*")
-	emphasis, _   = regexp.Compile(".*(\\*.+\\*).*|.*(\\_.+\\_).*")
-	strong, _     = regexp.Compile(".*(\\*\\*.+\\*\\*).*|.*(\\_\\_.+\\_\\_).*")
+	link, _       = regexp.Compile(`.*(\[.+?\])(\(.+?\)).*`)
+	emphasis, _   = regexp.Compile(`.*(\*.+\*).*|.*(\_.+\_).*`)
+	strong, _     = regexp.Compile(`.*(\*\*.+\*\*).*|.*(\_\_.+\_\_).*`)
 	horizontal, _ = regexp.Compile("^-{3}|_{3}|\\*{3}")
 	whitespace, _ = regexp.Compile("^( +)(.*)")
 )
@@ -85,8 +85,8 @@ func convert(line string) Line {
 
 	// ----- Inline Elements -----
 
-	match_something := true
-	for match_something {
+	matchSomething := true
+	for matchSomething {
 		// inline elements are replaced with HTML in this function.
 		for strong.MatchString(line) {
 			// line[loc[2]:loc[3]]: **<text>**
@@ -151,7 +151,7 @@ func convert(line string) Line {
 		if len(line) > 2 && line[len(line)-2:] == "  " {
 			line = line[:len(line)-2] + "<br>"
 		}
-		match_something = false
+		matchSomething = false
 	}
 
 	// ----- Block Elements -----
