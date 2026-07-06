@@ -1,0 +1,4 @@
+-- input.txt --
+_emphasis_
+-- expected.html --
+<p><em>emphasis</em></p>

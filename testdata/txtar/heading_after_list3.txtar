@@ -1,0 +1,6 @@
+-- input.txt --
+- a
+  - b
+# h1
+-- expected.html --
+<ul><li>a</li><ul><li>b</li></ul></ul><h1>h1</h1>

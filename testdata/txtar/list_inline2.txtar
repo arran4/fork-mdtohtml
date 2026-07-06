@@ -1,0 +1,4 @@
+-- input.txt --
+- This is [link](http://example.com) list.
+-- expected.html --
+<ul><li>This is <a href="http://example.com">link</a> list.</li></ul>

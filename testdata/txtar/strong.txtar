@@ -1,0 +1,4 @@
+-- input.txt --
+**strong**
+-- expected.html --
+<p><strong>strong</strong></p>

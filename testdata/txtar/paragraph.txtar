@@ -1,0 +1,4 @@
+-- input.txt --
+a paragraph
+-- expected.html --
+<p>a paragraph</p>
