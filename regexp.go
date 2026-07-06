@@ -13,7 +13,7 @@ var (
 	link, _       = regexp.Compile(`.*(\[.+?\])(\(.+?\)).*`)
 	emphasis, _   = regexp.Compile(`.*(\*.+\*).*|.*(\_.+\_).*`)
 	strong, _     = regexp.Compile(`.*(\*\*.+\*\*).*|.*(\_\_.+\_\_).*`)
-	horizontal, _ = regexp.Compile("^-{3}|_{3}|\\*{3}")
+	horizontal, _ = regexp.Compile(`^-{3}|_{3}|\*{3}`)
 	whitespace, _ = regexp.Compile("^( +)(.*)")
 )
 
@@ -56,6 +56,7 @@ func ntoh(n int) Type {
 	default:
 		panic(fmt.Sprintf("a heading should be in the range of 1 to 6, but got %d", n))
 	}
+	return P
 }
 
 func hton(ty Type) int {
@@ -75,6 +76,7 @@ func hton(ty Type) int {
 	default:
 		panic(fmt.Sprintf("a heading should be in the range of 1 to 6, but got %d", ty))
 	}
+	return 0
 }
 
 func convert(line string) Line {
