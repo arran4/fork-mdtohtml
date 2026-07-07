@@ -1,0 +1,5 @@
+-- input.txt --
+- list1
+- list2
+-- expected.html --
+<ul><li>list1</li><li>list2</li></ul>

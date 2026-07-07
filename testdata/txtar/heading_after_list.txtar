@@ -1,0 +1,5 @@
+-- input.txt --
+- list1
+# h1
+-- expected.html --
+<ul><li>list1</li></ul><h1>h1</h1>

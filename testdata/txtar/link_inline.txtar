@@ -1,0 +1,4 @@
+-- input.txt --
+inline text[link](http://example.com).
+-- expected.html --
+<p>inline text<a href="http://example.com">link</a>.</p>

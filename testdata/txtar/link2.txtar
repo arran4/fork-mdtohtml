@@ -1,0 +1,4 @@
+-- input.txt --
+[link(2)](http://example.com)
+-- expected.html --
+<p><a href="http://example.com">link(2)</a></p>

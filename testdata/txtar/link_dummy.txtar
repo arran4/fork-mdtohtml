@@ -1,0 +1,4 @@
+-- input.txt --
+[dummylink] (http://example.com)
+-- expected.html --
+<p>[dummylink] (http://example.com)</p>

@@ -7,14 +7,14 @@ import (
 )
 
 var (
-	heading, _    = regexp.Compile("(^#{1,6}) (.+)")
-	headingIn, _  = regexp.Compile("^ *- +(#{1,6}) (.+)")
-	list, _       = regexp.Compile("^( *)- (.+)")
-	link, _       = regexp.Compile(".*(\\[.+?\\])(\\(.+?\\)).*")
-	emphasis, _   = regexp.Compile(".*(\\*.+\\*).*|.*(\\_.+\\_).*")
-	strong, _     = regexp.Compile(".*(\\*\\*.+\\*\\*).*|.*(\\_\\_.+\\_\\_).*")
-	horizontal, _ = regexp.Compile("^-{3}|_{3}|\\*{3}")
-	whitespace, _ = regexp.Compile("^( +)(.*)")
+	heading    = regexp.MustCompile(`(^#{1,6}) (.+)`)
+	headingIn  = regexp.MustCompile(`^ *- +(#{1,6}) (.+)`)
+	list       = regexp.MustCompile(`^( *)- (.+)`)
+	link       = regexp.MustCompile(`.*(\[.+?\])(\(.+?\)).*`)
+	emphasis   = regexp.MustCompile(`.*(\*.+\*).*|.*(\_.+\_).*`)
+	strong     = regexp.MustCompile(`.*(\*\*.+\*\*).*|.*(\_\_.+\_\_).*`)
+	horizontal = regexp.MustCompile(`^-{3}|_{3}|\*{3}`)
+	whitespace = regexp.MustCompile(`^( +)(.*)`)
 )
 
 type Type int
@@ -56,6 +56,7 @@ func ntoh(n int) Type {
 	default:
 		panic(fmt.Sprintf("a heading should be in the range of 1 to 6, but got %d", n))
 	}
+	return P
 }
 
 func hton(ty Type) int {
@@ -75,6 +76,7 @@ func hton(ty Type) int {
 	default:
 		panic(fmt.Sprintf("a heading should be in the range of 1 to 6, but got %d", ty))
 	}
+	return 0
 }
 
 func convert(line string) Line {
@@ -85,8 +87,8 @@ func convert(line string) Line {
 
 	// ----- Inline Elements -----
 
-	match_something := true
-	for match_something {
+	matchSomething := true
+	for matchSomething {
 		// inline elements are replaced with HTML in this function.
 		for strong.MatchString(line) {
 			// line[loc[2]:loc[3]]: **<text>**
@@ -128,10 +130,10 @@ func convert(line string) Line {
 
 			litag := "<a href=\"" + url + "\">" + text + "</a>"
 			line = line[:loc[2]] + litag + line[loc[5]:]
-                        fmt.Println(loc)
-                        fmt.Println(text)
-                        fmt.Println(url)
-                        fmt.Println(line)
+			fmt.Println(loc)
+			fmt.Println(text)
+			fmt.Println(url)
+			fmt.Println(line)
 			continue
 		}
 
@@ -151,7 +153,7 @@ func convert(line string) Line {
 		if len(line) > 2 && line[len(line)-2:] == "  " {
 			line = line[:len(line)-2] + "<br>"
 		}
-		match_something = false
+		matchSomething = false
 	}
 
 	// ----- Block Elements -----
