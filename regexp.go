@@ -56,6 +56,7 @@ func ntoh(n int) Type {
 	default:
 		panic(fmt.Sprintf("a heading should be in the range of 1 to 6, but got %d", n))
 	}
+	return P
 }
 
 func hton(ty Type) int {
@@ -75,6 +76,7 @@ func hton(ty Type) int {
 	default:
 		panic(fmt.Sprintf("a heading should be in the range of 1 to 6, but got %d", ty))
 	}
+	return 0
 }
 
 func convert(line string) Line {
@@ -128,10 +130,10 @@ func convert(line string) Line {
 
 			litag := "<a href=\"" + url + "\">" + text + "</a>"
 			line = line[:loc[2]] + litag + line[loc[5]:]
-                        fmt.Println(loc)
-                        fmt.Println(text)
-                        fmt.Println(url)
-                        fmt.Println(line)
+			fmt.Println(loc)
+			fmt.Println(text)
+			fmt.Println(url)
+			fmt.Println(line)
 			continue
 		}
 
