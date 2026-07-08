@@ -56,7 +56,6 @@ func ntoh(n int) Type {
 	default:
 		panic(fmt.Sprintf("a heading should be in the range of 1 to 6, but got %d", n))
 	}
-	return P
 }
 
 func hton(ty Type) int {
@@ -76,7 +75,6 @@ func hton(ty Type) int {
 	default:
 		panic(fmt.Sprintf("a heading should be in the range of 1 to 6, but got %d", ty))
 	}
-	return 0
 }
 
 func convert(line string) Line {
