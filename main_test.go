@@ -19,10 +19,10 @@ func SplitInputExpected(ar *txtar.Archive) (input, expected fstest.MapFS) {
 	expected = fstest.MapFS{}
 
 	for _, f := range ar.Files {
-		switch {
-		case f.Name == "input.txt":
+		switch f.Name {
+		case "input.txt":
 			input[f.Name] = &fstest.MapFile{Data: f.Data}
-		case f.Name == "expected.html":
+		case "expected.html":
 			expected[f.Name] = &fstest.MapFile{Data: f.Data}
 		}
 	}
