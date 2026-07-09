@@ -23,15 +23,26 @@ func main() {
 
 	wfile, err := os.Create(name[0] + ".html")
 	check(err)
-	defer wfile.Close()
+
+	defer func() {
+		if err := wfile.Close(); err != nil {
+			panic(err)
+		}
+	}()
 	writer := bufio.NewWriter(wfile)
 	if len(os.Args) < 3 || os.Args[2] != "-nocss" {
-		fmt.Fprintln(writer, css())
+		_, err = fmt.Fprintln(writer, css())
+		check(err)
 	}
 
 	rfile, err := os.Open(fname)
 	check(err)
-	defer rfile.Close()
+
+	defer func() {
+		if err := rfile.Close(); err != nil {
+			panic(err)
+		}
+	}()
 	reader := bufio.NewReader(rfile)
 
 	lines := make([]Line, 0)
