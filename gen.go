@@ -67,9 +67,7 @@ func generate(lines []Line) string {
 		default:
 			// insert a white space in a paragraph
 			if (i > 0 && lines[i-1].ty == P) && (i < len(lines)-1 && lines[i+1].ty == P) {
-				if len(lines[i-1].val) >= 4 && lines[i-1].val[len(lines[i-1].val)-4:] == "<br>" {
-					// no space if the previous line has a break
-				} else {
+				if !lines[i-1].hasBr {
 					html += " "
 				}
 			}
