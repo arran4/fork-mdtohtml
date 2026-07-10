@@ -33,7 +33,13 @@ func main() {
 			usage()
 		} else if arg == "-nocss" {
 			noCSS = true
-		} else if !strings.HasPrefix(arg, "-") {
+		} else if strings.HasPrefix(arg, "-") {
+			fmt.Fprintf(os.Stderr, "error: unknown flag %s\n", arg)
+			usage()
+		} else if fname != "" {
+			fmt.Fprintf(os.Stderr, "error: multiple input files specified\n")
+			usage()
+		} else {
 			fname = arg
 		}
 	}
@@ -71,8 +77,7 @@ func main() {
 
 	defer func() {
 		if err := rfile.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			os.Exit(1)
+			fmt.Fprintf(os.Stderr, "error closing input file: %v\n", err)
 		}
 	}()
 	reader := bufio.NewReader(rfile)
