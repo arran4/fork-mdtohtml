@@ -129,59 +129,153 @@ func matchWhitespace(line string) []int {
 }
 
 func matchStrong(line string) []int {
-	idx1 := strings.LastIndex(line, "**")
-	if idx1 != -1 {
-		idx2 := strings.LastIndex(line[:idx1], "**")
-		if idx2 != -1 && idx1-idx2 > 2 {
-			return []int{0, len(line), idx2, idx1 + 2, -1, -1}
+	var res []int
+	var indices []int
+	for i := 0; i <= len(line)-2; i++ {
+		if line[i:i+2] == "**" {
+			indices = append(indices, i)
 		}
 	}
-	idx1 = strings.LastIndex(line, "__")
-	if idx1 != -1 {
-		idx2 := strings.LastIndex(line[:idx1], "__")
-		if idx2 != -1 && idx1-idx2 > 2 {
-			return []int{0, len(line), -1, -1, idx2, idx1 + 2}
+	var stack []int
+	for _, idx := range indices {
+		if len(stack) > 0 {
+			top := stack[len(stack)-1]
+			if idx-top > 2 {
+				stack = stack[:len(stack)-1]
+				res = []int{0, len(line), top, idx + 2, -1, -1}
+				// By not pushing the closing index, we successfully closed a pair.
+				// However, maybe there was an earlier unmatched delimiter still on the stack
+				// that can form a pair with a later one. We just processed `idx` as closing `top`.
+				continue
+			}
+		}
+		stack = append(stack, idx)
+	}
+
+	// We iterate backwards to prioritize the rightmost pair, since the regex `.*` uses greediness to match the LAST valid instance.
+	// But our stack algorithm finds the FIRST matching pairs.
+	// Let's just find the last valid pair instead.
+	res = nil
+	for i := len(indices) - 1; i >= 0; i-- {
+		closeIdx := indices[i]
+		for j := i - 1; j >= 0; j-- {
+			openIdx := indices[j]
+			if closeIdx-openIdx > 2 {
+				res = []int{0, len(line), openIdx, closeIdx + 2, -1, -1}
+				break
+			}
+		}
+		if res != nil {
+			break
 		}
 	}
-	return nil
+
+	indices = nil
+	for i := 0; i <= len(line)-2; i++ {
+		if line[i:i+2] == "__" {
+			indices = append(indices, i)
+		}
+	}
+
+	var res2 []int
+	for i := len(indices) - 1; i >= 0; i-- {
+		closeIdx := indices[i]
+		for j := i - 1; j >= 0; j-- {
+			openIdx := indices[j]
+			if closeIdx-openIdx > 2 {
+				res2 = []int{0, len(line), -1, -1, openIdx, closeIdx + 2}
+				break
+			}
+		}
+		if res2 != nil {
+			break
+		}
+	}
+
+	if res == nil {
+		res = res2
+	} else if res2 != nil {
+		if res2[4] > res[2] {
+			res = res2
+		}
+	}
+
+	return res
 }
 
 func matchEmphasis(line string) []int {
-	idx1 := strings.LastIndex(line, "*")
-	if idx1 != -1 {
-		idx2 := strings.LastIndex(line[:idx1], "*")
-		if idx2 != -1 && idx1-idx2 > 1 {
-			return []int{0, len(line), idx2, idx1 + 1, -1, -1}
+	var res []int
+	var indices []int
+	for i := 0; i < len(line); i++ {
+		if line[i] == '*' {
+			indices = append(indices, i)
 		}
 	}
-	idx1 = strings.LastIndex(line, "_")
-	if idx1 != -1 {
-		idx2 := strings.LastIndex(line[:idx1], "_")
-		if idx2 != -1 && idx1-idx2 > 1 {
-			return []int{0, len(line), -1, -1, idx2, idx1 + 1}
+
+	for i := len(indices) - 1; i >= 0; i-- {
+		closeIdx := indices[i]
+		for j := i - 1; j >= 0; j-- {
+			openIdx := indices[j]
+			if closeIdx-openIdx > 1 {
+				res = []int{0, len(line), openIdx, closeIdx + 1, -1, -1}
+				break
+			}
+		}
+		if res != nil {
+			break
 		}
 	}
-	return nil
+
+	indices = nil
+	for i := 0; i < len(line); i++ {
+		if line[i] == '_' {
+			indices = append(indices, i)
+		}
+	}
+
+	var res2 []int
+	for i := len(indices) - 1; i >= 0; i-- {
+		closeIdx := indices[i]
+		for j := i - 1; j >= 0; j-- {
+			openIdx := indices[j]
+			if closeIdx-openIdx > 1 {
+				res2 = []int{0, len(line), -1, -1, openIdx, closeIdx + 1}
+				break
+			}
+		}
+		if res2 != nil {
+			break
+		}
+	}
+
+	if res == nil {
+		res = res2
+	} else if res2 != nil {
+		if res2[4] > res[2] {
+			res = res2
+		}
+	}
+
+	return res
 }
 
 func matchLink(line string) []int {
-	anchor := strings.LastIndex(line, "](")
-	if anchor == -1 {
-		return nil
+	searchStart := len(line)
+	for {
+		anchor := strings.LastIndex(line[:searchStart], "](")
+		if anchor == -1 {
+			return nil
+		}
+		start := strings.LastIndex(line[:anchor], "[")
+		end := strings.Index(line[anchor:], ")")
+		if start != -1 && end != -1 {
+			end += anchor
+			if anchor-start > 1 && end-(anchor+1) > 1 {
+				return []int{0, len(line), start, anchor + 1, anchor + 1, end + 1}
+			}
+		}
+		searchStart = anchor
 	}
-	start := strings.LastIndex(line[:anchor], "[")
-	if start == -1 {
-		return nil
-	}
-	end := strings.Index(line[anchor:], ")")
-	if end == -1 {
-		return nil
-	}
-	end += anchor
-	if anchor-start > 1 && end-(anchor+1) > 1 {
-		return []int{0, len(line), start, anchor + 1, anchor + 1, end + 1}
-	}
-	return nil
 }
 
 func ntoh(n int) Type {
