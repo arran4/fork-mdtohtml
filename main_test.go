@@ -50,7 +50,7 @@ func TestTxtar(t *testing.T) {
 			if err != nil {
 				t.Fatalf("read input.txt: %v", err)
 			}
-			input := strings.TrimSpace(string(inputRaw))
+			input := strings.TrimRight(string(inputRaw), "\r\n")
 
 			lines := make([]Line, 0)
 			for _, in := range strings.Split(input, "\n") {
@@ -62,7 +62,7 @@ func TestTxtar(t *testing.T) {
 			if err != nil {
 				t.Fatalf("read expected.html: %v", err)
 			}
-			expected := strings.TrimSpace(string(expectedRaw))
+			expected := strings.TrimSuffix(strings.TrimSuffix(string(expectedRaw), "\n"), "\r")
 
 			if html != expected {
 				t.Errorf("%q => expected %q but got %q", input, expected, html)
