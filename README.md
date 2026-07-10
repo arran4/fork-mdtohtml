@@ -13,10 +13,14 @@ go install github.com/mdtohtml/mdtohtml@latest
 
 ## Usage
 ```
-$ make mdtohtml & ./mdtohtml <markdown-filename>
+$ go run . <markdown-filename>
 
 // You can avoid to generate css file with -nocss flag in order to customize style.
-$ make mdtohtml & ./mdtohtml <markdown-filename> -nocss
+$ go run . <markdown-filename> -nocss
+
+// Alternatively, if you have installed the tool using `go install`:
+$ mdtohtml <markdown-filename>
+$ mdtohtml <markdown-filename> -nocss
 ```
 
 ## Current support notations (2019-10-14)
@@ -51,4 +55,4 @@ Newline = "\n" ;
 ```
 
 ## Test
-Supports test written in Go. You can test this tool just by `$ make test`.
+Supports test written in Go. You can test this tool just by `$ go test ./...`.

@@ -305,8 +305,8 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
-      - name: Make Test
-        run: make test
+      - name: Go Test
+        run: go test -v ./...
 
   go-vet:
     name: Go vet
