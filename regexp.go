@@ -34,9 +34,10 @@ const (
 )
 
 type Line struct {
-	ty  Type
-	val string
-	dep int
+	ty    Type
+	val   string
+	dep   int
+	hasBr bool
 }
 
 func ntoh(n int) Type {
@@ -82,8 +83,10 @@ func hton(ty Type) int {
 func convert(line string) Line {
 	// newline
 	if line == "\n" || len(line) == 0 {
-		return Line{Newline, " ", 0}
+		return Line{Newline, " ", 0, false}
 	}
+
+	hasBr := false
 
 	// ----- Inline Elements -----
 
@@ -152,6 +155,7 @@ func convert(line string) Line {
 		// break at the end of line
 		if len(line) > 2 && line[len(line)-2:] == "  " {
 			line = line[:len(line)-2] + "<br>"
+			hasBr = true
 		}
 		matchSomething = false
 	}
@@ -164,7 +168,7 @@ func convert(line string) Line {
 		//line[loc[4]:loc[5]]: list content
 		loc := list.FindStringSubmatchIndex(line)
 		dep := loc[3] / 2
-		return Line{Li, line[loc[4]:loc[5]], dep}
+		return Line{Li, line[loc[4]:loc[5]], dep, false}
 	}
 
 	if heading.MatchString(line) {
@@ -172,11 +176,11 @@ func convert(line string) Line {
 		//line[loc[4]:loc[5]]: title
 		loc := heading.FindStringSubmatchIndex(line)
 		n := loc[3]
-		return Line{ntoh(n), line[loc[4]:loc[5]], 0}
+		return Line{ntoh(n), line[loc[4]:loc[5]], 0, false}
 	}
 
 	if horizontal.MatchString(line) {
-		return Line{Hr, "", 0}
+		return Line{Hr, "", 0, false}
 	}
 
 	// replace white spaces with a white space at the start of a line
@@ -187,5 +191,5 @@ func convert(line string) Line {
 		line = " " + line[loc[4]:loc[5]]
 	}
 
-	return Line{P, line, 0}
+	return Line{P, line, 0, hasBr}
 }
