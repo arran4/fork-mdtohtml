@@ -1,5 +1,5 @@
 -- input.txt --
-a paragraph
+a paragraph\
 hogehoge
 -- expected.html --
 <p>a paragraph<br>hogehoge</p>
