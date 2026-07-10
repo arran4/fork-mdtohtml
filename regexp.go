@@ -143,31 +143,10 @@ func matchStrong(line string) []int {
 			if idx-top > 2 {
 				stack = stack[:len(stack)-1]
 				res = []int{0, len(line), top, idx + 2, -1, -1}
-				// By not pushing the closing index, we successfully closed a pair.
-				// However, maybe there was an earlier unmatched delimiter still on the stack
-				// that can form a pair with a later one. We just processed `idx` as closing `top`.
 				continue
 			}
 		}
 		stack = append(stack, idx)
-	}
-
-	// We iterate backwards to prioritize the rightmost pair, since the regex `.*` uses greediness to match the LAST valid instance.
-	// But our stack algorithm finds the FIRST matching pairs.
-	// Let's just find the last valid pair instead.
-	res = nil
-	for i := len(indices) - 1; i >= 0; i-- {
-		closeIdx := indices[i]
-		for j := i - 1; j >= 0; j-- {
-			openIdx := indices[j]
-			if closeIdx-openIdx > 2 {
-				res = []int{0, len(line), openIdx, closeIdx + 2, -1, -1}
-				break
-			}
-		}
-		if res != nil {
-			break
-		}
 	}
 
 	indices = nil
@@ -176,30 +155,25 @@ func matchStrong(line string) []int {
 			indices = append(indices, i)
 		}
 	}
-
-	var res2 []int
-	for i := len(indices) - 1; i >= 0; i-- {
-		closeIdx := indices[i]
-		for j := i - 1; j >= 0; j-- {
-			openIdx := indices[j]
-			if closeIdx-openIdx > 2 {
-				res2 = []int{0, len(line), -1, -1, openIdx, closeIdx + 2}
-				break
+	stack = nil
+	for _, idx := range indices {
+		if len(stack) > 0 {
+			top := stack[len(stack)-1]
+			if idx-top > 2 {
+				stack = stack[:len(stack)-1]
+				res2 := []int{0, len(line), -1, -1, top, idx + 2}
+				if res == nil {
+					res = res2
+				} else {
+					if res2[4] > res[2] {
+						res = res2
+					}
+				}
+				continue
 			}
 		}
-		if res2 != nil {
-			break
-		}
+		stack = append(stack, idx)
 	}
-
-	if res == nil {
-		res = res2
-	} else if res2 != nil {
-		if res2[4] > res[2] {
-			res = res2
-		}
-	}
-
 	return res
 }
 
@@ -211,19 +185,17 @@ func matchEmphasis(line string) []int {
 			indices = append(indices, i)
 		}
 	}
-
-	for i := len(indices) - 1; i >= 0; i-- {
-		closeIdx := indices[i]
-		for j := i - 1; j >= 0; j-- {
-			openIdx := indices[j]
-			if closeIdx-openIdx > 1 {
-				res = []int{0, len(line), openIdx, closeIdx + 1, -1, -1}
-				break
+	var stack []int
+	for _, idx := range indices {
+		if len(stack) > 0 {
+			top := stack[len(stack)-1]
+			if idx-top > 1 {
+				stack = stack[:len(stack)-1]
+				res = []int{0, len(line), top, idx + 1, -1, -1}
+				continue
 			}
 		}
-		if res != nil {
-			break
-		}
+		stack = append(stack, idx)
 	}
 
 	indices = nil
@@ -232,30 +204,25 @@ func matchEmphasis(line string) []int {
 			indices = append(indices, i)
 		}
 	}
-
-	var res2 []int
-	for i := len(indices) - 1; i >= 0; i-- {
-		closeIdx := indices[i]
-		for j := i - 1; j >= 0; j-- {
-			openIdx := indices[j]
-			if closeIdx-openIdx > 1 {
-				res2 = []int{0, len(line), -1, -1, openIdx, closeIdx + 1}
-				break
+	stack = nil
+	for _, idx := range indices {
+		if len(stack) > 0 {
+			top := stack[len(stack)-1]
+			if idx-top > 1 {
+				stack = stack[:len(stack)-1]
+				res2 := []int{0, len(line), -1, -1, top, idx + 1}
+				if res == nil {
+					res = res2
+				} else {
+					if res2[4] > res[2] {
+						res = res2
+					}
+				}
+				continue
 			}
 		}
-		if res2 != nil {
-			break
-		}
+		stack = append(stack, idx)
 	}
-
-	if res == nil {
-		res = res2
-	} else if res2 != nil {
-		if res2[4] > res[2] {
-			res = res2
-		}
-	}
-
 	return res
 }
 
