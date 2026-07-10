@@ -153,8 +153,11 @@ func convert(line string) Line {
 		}
 
 		// break at the end of line
-		if len(line) > 2 && line[len(line)-2:] == "  " {
+		if len(line) >= 2 && line[len(line)-2:] == "  " {
 			line = line[:len(line)-2] + "<br>"
+			hasBr = true
+		} else if len(line) >= 1 && line[len(line)-1] == '\\' {
+			line = line[:len(line)-1] + "<br>"
 			hasBr = true
 		}
 		matchSomething = false
