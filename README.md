@@ -13,10 +13,14 @@ go install github.com/mdtohtml/mdtohtml@latest
 
 ## Usage
 ```
-$ go build . & ./mdtohtml <markdown-filename>
+$ go run . <markdown-filename>
 
 // You can avoid to generate css file with -nocss flag in order to customize style.
-$ go build . & ./mdtohtml <markdown-filename> -nocss
+$ go run . <markdown-filename> -nocss
+
+// Alternatively, if you have installed the tool using `go install`:
+$ mdtohtml <markdown-filename>
+$ mdtohtml <markdown-filename> -nocss
 ```
 
 ## Current support notations (2019-10-14)
