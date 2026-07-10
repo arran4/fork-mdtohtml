@@ -4,33 +4,70 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 func check(e error) {
 	if e != nil {
-		panic(e)
+		fmt.Fprintf(os.Stderr, "error: %v\n", e)
+		os.Exit(1)
 	}
 }
 
-func main() {
-	fname := os.Args[1]
-	name := strings.Split(fname, ".")
+func usage() {
+	fmt.Fprintf(os.Stderr, "Usage: %s <markdown-filename> [-nocss]\n", os.Args[0])
+	os.Exit(1)
+}
 
-	if strings.Compare(strings.ToLower(name[len(name)-1]), "md") != 0 {
-		panic("input file must be a markdown file (.md)")
+func main() {
+	if len(os.Args) < 2 {
+		usage()
 	}
 
-	wfile, err := os.Create(name[0] + ".html")
+	var fname string
+	var noCSS bool
+
+	for _, arg := range os.Args[1:] {
+		if arg == "-h" || arg == "--help" || arg == "-help" {
+			usage()
+		} else if arg == "-nocss" {
+			noCSS = true
+		} else if strings.HasPrefix(arg, "-") {
+			fmt.Fprintf(os.Stderr, "error: unknown flag %s\n", arg)
+			usage()
+		} else if fname != "" {
+			fmt.Fprintf(os.Stderr, "error: multiple input files specified\n")
+			usage()
+		} else {
+			fname = arg
+		}
+	}
+
+	if fname == "" {
+		fmt.Fprintf(os.Stderr, "error: missing markdown filename\n")
+		usage()
+	}
+
+	ext := filepath.Ext(fname)
+	if strings.ToLower(ext) != ".md" {
+		fmt.Fprintf(os.Stderr, "error: input file must be a markdown file (.md)\n")
+		os.Exit(1)
+	}
+
+	base := strings.TrimSuffix(fname, ext)
+
+	wfile, err := os.Create(base + ".html")
 	check(err)
 
 	defer func() {
 		if err := wfile.Close(); err != nil {
-			panic(err)
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
 		}
 	}()
 	writer := bufio.NewWriter(wfile)
-	if len(os.Args) < 3 || os.Args[2] != "-nocss" {
+	if !noCSS {
 		_, err = fmt.Fprintln(writer, css())
 		check(err)
 	}
@@ -40,7 +77,7 @@ func main() {
 
 	defer func() {
 		if err := rfile.Close(); err != nil {
-			panic(err)
+			fmt.Fprintf(os.Stderr, "error closing input file: %v\n", err)
 		}
 	}()
 	reader := bufio.NewReader(rfile)
