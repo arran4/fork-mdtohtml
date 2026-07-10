@@ -2,19 +2,8 @@ package main
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
-)
-
-var (
-	heading    = regexp.MustCompile(`(^#{1,6}) (.+)`)
-	headingIn  = regexp.MustCompile(`^ *- +(#{1,6}) (.+)`)
-	list       = regexp.MustCompile(`^( *)- (.+)`)
-	link       = regexp.MustCompile(`.*(\[.+?\])(\(.+?\)).*`)
-	emphasis   = regexp.MustCompile(`.*(\*.+\*).*|.*(\_.+\_).*`)
-	strong     = regexp.MustCompile(`.*(\*\*.+\*\*).*|.*(\_\_.+\_\_).*`)
-	horizontal = regexp.MustCompile(`^-{3}|_{3}|\*{3}`)
-	whitespace = regexp.MustCompile(`^( +)(.*)`)
+	"strings"
 )
 
 type Type int
@@ -38,6 +27,161 @@ type Line struct {
 	val   string
 	dep   int
 	hasBr bool
+}
+
+func matchHeadingIn(line string) []int {
+	idx := 0
+	for idx < len(line) && line[idx] == ' ' {
+		idx++
+	}
+	if idx >= len(line) || line[idx] != '-' {
+		return nil
+	}
+	idx++
+	if idx >= len(line) || line[idx] != ' ' {
+		return nil
+	}
+	for idx < len(line) && line[idx] == ' ' {
+		idx++
+	}
+	hashStart := idx
+	hashCount := 0
+	for idx < len(line) && line[idx] == '#' {
+		hashCount++
+		idx++
+	}
+	if hashCount < 1 || hashCount > 6 {
+		return nil
+	}
+	hashEnd := idx
+	if idx >= len(line) || line[idx] != ' ' {
+		return nil
+	}
+	idx++
+	if idx >= len(line) {
+		return nil
+	}
+	return []int{0, len(line), hashStart, hashEnd, idx, len(line)}
+}
+
+func matchList(line string) []int {
+	idx := 0
+	for idx < len(line) && line[idx] == ' ' {
+		idx++
+	}
+	spaces := idx
+	if idx >= len(line) || line[idx] != '-' {
+		return nil
+	}
+	idx++
+	if idx >= len(line) || line[idx] != ' ' {
+		return nil
+	}
+	idx++
+	if idx >= len(line) {
+		return nil
+	}
+	return []int{0, len(line), 0, spaces, idx, len(line)}
+}
+
+func matchHeading(line string) []int {
+	idx := 0
+	hashCount := 0
+	for idx < len(line) && line[idx] == '#' {
+		hashCount++
+		idx++
+	}
+	if hashCount < 1 || hashCount > 6 {
+		return nil
+	}
+	if idx >= len(line) || line[idx] != ' ' {
+		return nil
+	}
+	idx++
+	if idx >= len(line) {
+		return nil
+	}
+	return []int{0, len(line), 0, hashCount, idx, len(line)}
+}
+
+func matchHorizontal(line string) bool {
+	if strings.HasPrefix(line, "---") {
+		return true
+	}
+	if strings.Contains(line, "___") {
+		return true
+	}
+	if strings.Contains(line, "***") {
+		return true
+	}
+	return false
+}
+
+func matchWhitespace(line string) []int {
+	idx := 0
+	for idx < len(line) && line[idx] == ' ' {
+		idx++
+	}
+	if idx > 0 {
+		return []int{0, len(line), 0, idx, idx, len(line)}
+	}
+	return nil
+}
+
+func matchStrong(line string) []int {
+	idx1 := strings.LastIndex(line, "**")
+	if idx1 != -1 {
+		idx2 := strings.LastIndex(line[:idx1], "**")
+		if idx2 != -1 && idx1-idx2 > 2 {
+			return []int{0, len(line), idx2, idx1 + 2, -1, -1}
+		}
+	}
+	idx1 = strings.LastIndex(line, "__")
+	if idx1 != -1 {
+		idx2 := strings.LastIndex(line[:idx1], "__")
+		if idx2 != -1 && idx1-idx2 > 2 {
+			return []int{0, len(line), -1, -1, idx2, idx1 + 2}
+		}
+	}
+	return nil
+}
+
+func matchEmphasis(line string) []int {
+	idx1 := strings.LastIndex(line, "*")
+	if idx1 != -1 {
+		idx2 := strings.LastIndex(line[:idx1], "*")
+		if idx2 != -1 && idx1-idx2 > 1 {
+			return []int{0, len(line), idx2, idx1 + 1, -1, -1}
+		}
+	}
+	idx1 = strings.LastIndex(line, "_")
+	if idx1 != -1 {
+		idx2 := strings.LastIndex(line[:idx1], "_")
+		if idx2 != -1 && idx1-idx2 > 1 {
+			return []int{0, len(line), -1, -1, idx2, idx1 + 1}
+		}
+	}
+	return nil
+}
+
+func matchLink(line string) []int {
+	anchor := strings.LastIndex(line, "](")
+	if anchor == -1 {
+		return nil
+	}
+	start := strings.LastIndex(line[:anchor], "[")
+	if start == -1 {
+		return nil
+	}
+	end := strings.Index(line[anchor:], ")")
+	if end == -1 {
+		return nil
+	}
+	end += anchor
+	if anchor-start > 1 && end-(anchor+1) > 1 {
+		return []int{0, len(line), start, anchor + 1, anchor + 1, end + 1}
+	}
+	return nil
 }
 
 func ntoh(n int) Type {
@@ -92,11 +236,10 @@ func convert(line string) Line {
 
 	matchSomething := true
 	for matchSomething {
+		matchSomething = false
+
 		// inline elements are replaced with HTML in this function.
-		for strong.MatchString(line) {
-			// line[loc[2]:loc[3]]: **<text>**
-			// line[loc[4]:loc[5]]: __<text>__
-			loc := strong.FindStringSubmatchIndex(line)
+		if loc := matchStrong(line); loc != nil {
 			s := loc[2]
 			e := loc[3]
 			if s == -1 && e == -1 {
@@ -105,13 +248,11 @@ func convert(line string) Line {
 			}
 			sttag := "<strong>" + line[s+2:e-2] + "</strong>"
 			line = line[:s] + sttag + line[e:]
+			matchSomething = true
 			continue
 		}
 
-		for emphasis.MatchString(line) {
-			// line[loc[2]:loc[3]]: *<text>*
-			// line[loc[4]:loc[5]]: _<text>_
-			loc := emphasis.FindStringSubmatchIndex(line)
+		if loc := matchEmphasis(line); loc != nil {
 			s := loc[2]
 			e := loc[3]
 			if s == -1 && e == -1 {
@@ -120,14 +261,11 @@ func convert(line string) Line {
 			}
 			emtag := "<em>" + line[s+1:e-1] + "</em>"
 			line = line[:s] + emtag + line[e:]
+			matchSomething = true
 			continue
 		}
 
-		for link.MatchString(line) { // links <a href="url">link text</a>
-			//line[loc[2]:loc[3]]: link text
-			//line[loc[4]:loc[5]]: url
-			loc := link.FindStringSubmatchIndex(line)
-
+		if loc := matchLink(line); loc != nil { // links <a href="url">link text</a>
 			text := line[loc[2]+1 : loc[3]-1]
 			url := line[loc[4]+1 : loc[5]-1]
 
@@ -137,18 +275,16 @@ func convert(line string) Line {
 			fmt.Println(text)
 			fmt.Println(url)
 			fmt.Println(line)
+			matchSomething = true
 			continue
 		}
 
 		// heading existing in another component
-		if headingIn.MatchString(line) {
-			//line[loc[2]:loc[3]]: #, ##, ..., or ######
-			//line[loc[4]:loc[5]]: title
-			loc := headingIn.FindStringSubmatchIndex(line)
-
+		if loc := matchHeadingIn(line); loc != nil {
 			n := loc[3] - loc[2] // heading number
 			htag := "<h" + strconv.Itoa(n) + ">" + line[loc[4]:loc[5]] + "</h" + strconv.Itoa(n) + ">"
 			line = line[:loc[2]] + htag
+			matchSomething = true
 			continue
 		}
 
@@ -156,41 +292,37 @@ func convert(line string) Line {
 		if len(line) >= 2 && line[len(line)-2:] == "  " {
 			line = line[:len(line)-2] + "<br>"
 			hasBr = true
+			// We don't continue or set matchSomething to true because
+			// this should just process the line breaks at the end.
+			// Actually the original logic set `matchSomething = false` after this,
+			// so it wouldn't loop unless inline elements triggered `continue`.
+			// Since we changed it to check everything without looping internally over `MatchString`,
+			// this handles the break at the very end of processing.
 		} else if len(line) >= 1 && line[len(line)-1] == '\\' {
 			line = line[:len(line)-1] + "<br>"
 			hasBr = true
 		}
-		matchSomething = false
 	}
 
 	// ----- Block Elements -----
 
 	// block elements will be replaced with HTML in the generate().
-	if list.MatchString(line) {
-		//line[loc[2]:loc[3]]: white spaces before "-"
-		//line[loc[4]:loc[5]]: list content
-		loc := list.FindStringSubmatchIndex(line)
+	if loc := matchList(line); loc != nil {
 		dep := loc[3] / 2
 		return Line{Li, line[loc[4]:loc[5]], dep, false}
 	}
 
-	if heading.MatchString(line) {
-		//line[loc[2]:loc[3]]: #, ##, ..., or ######
-		//line[loc[4]:loc[5]]: title
-		loc := heading.FindStringSubmatchIndex(line)
+	if loc := matchHeading(line); loc != nil {
 		n := loc[3]
 		return Line{ntoh(n), line[loc[4]:loc[5]], 0, false}
 	}
 
-	if horizontal.MatchString(line) {
+	if matchHorizontal(line) {
 		return Line{Hr, "", 0, false}
 	}
 
 	// replace white spaces with a white space at the start of a line
-	if whitespace.MatchString(line) {
-		//line[loc[2]:loc[3]]: whitespace
-		//line[loc[4]:loc[5]]: content
-		loc := whitespace.FindStringSubmatchIndex(line)
+	if loc := matchWhitespace(line); loc != nil {
 		line = " " + line[loc[4]:loc[5]]
 	}
 
