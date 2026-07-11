@@ -2,11 +2,17 @@ package main
 
 import (
 	"bufio"
+	_ "embed"
 	"fmt"
+	"html"
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 )
+
+//go:embed usage.tmpl
+var usageTmpl string
 
 func check(e error) {
 	if e != nil {
@@ -16,7 +22,20 @@ func check(e error) {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s <markdown-filename> [-nocss]\n", os.Args[0])
+	tmpl, err := template.New("usage").Parse(usageTmpl)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error parsing usage template: %v\n", err)
+		os.Exit(1)
+	}
+	data := struct {
+		ProgName string
+	}{
+		ProgName: os.Args[0],
+	}
+	err = tmpl.Execute(os.Stderr, data)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error executing usage template: %v\n", err)
+	}
 	os.Exit(1)
 }
 
@@ -27,12 +46,32 @@ func main() {
 
 	var fname string
 	var noCSS bool
+	var title string
+	var headers []string
 
-	for _, arg := range os.Args[1:] {
+	args := os.Args[1:]
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
 		if arg == "-h" || arg == "--help" || arg == "-help" {
 			usage()
 		} else if arg == "-nocss" {
 			noCSS = true
+		} else if arg == "-title" {
+			if i+1 < len(args) {
+				title = args[i+1]
+				i++
+			} else {
+				fmt.Fprintf(os.Stderr, "error: missing argument for -title\n")
+				usage()
+			}
+		} else if arg == "-header" {
+			if i+1 < len(args) {
+				headers = append(headers, args[i+1])
+				i++
+			} else {
+				fmt.Fprintf(os.Stderr, "error: missing argument for -header\n")
+				usage()
+			}
 		} else if strings.HasPrefix(arg, "-") {
 			fmt.Fprintf(os.Stderr, "error: unknown flag %s\n", arg)
 			usage()
@@ -67,6 +106,15 @@ func main() {
 		}
 	}()
 	writer := bufio.NewWriter(wfile)
+	if title != "" {
+		escapedTitle := html.EscapeString(title)
+		_, err = fmt.Fprintf(writer, "<title>%s</title>\n", escapedTitle)
+		check(err)
+	}
+	for _, h := range headers {
+		_, err = fmt.Fprintln(writer, h)
+		check(err)
+	}
 	if !noCSS {
 		_, err = fmt.Fprintln(writer, css())
 		check(err)
