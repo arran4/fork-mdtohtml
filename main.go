@@ -88,7 +88,8 @@ func main() {
 	}()
 	writer := bufio.NewWriter(wfile)
 	if title != "" {
-		_, err = fmt.Fprintf(writer, "<title>%s</title>\n", title)
+		escapedTitle := strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", "\"", "&quot;", "'", "&#39;").Replace(title)
+		_, err = fmt.Fprintf(writer, "<title>%s</title>\n", escapedTitle)
 		check(err)
 	}
 	for _, h := range headers {
