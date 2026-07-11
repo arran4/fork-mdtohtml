@@ -2,11 +2,17 @@ package main
 
 import (
 	"bufio"
+	_ "embed"
 	"fmt"
+	"html"
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 )
+
+//go:embed usage.tmpl
+var usageTmpl string
 
 func check(e error) {
 	if e != nil {
@@ -16,7 +22,20 @@ func check(e error) {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s <markdown-filename> [-nocss] [-title <title>] [-header <header-content>...]\n", os.Args[0])
+	tmpl, err := template.New("usage").Parse(usageTmpl)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error parsing usage template: %v\n", err)
+		os.Exit(1)
+	}
+	data := struct {
+		ProgName string
+	}{
+		ProgName: os.Args[0],
+	}
+	err = tmpl.Execute(os.Stderr, data)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error executing usage template: %v\n", err)
+	}
 	os.Exit(1)
 }
 
@@ -88,7 +107,7 @@ func main() {
 	}()
 	writer := bufio.NewWriter(wfile)
 	if title != "" {
-		escapedTitle := strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", "\"", "&quot;", "'", "&#39;").Replace(title)
+		escapedTitle := html.EscapeString(title)
 		_, err = fmt.Fprintf(writer, "<title>%s</title>\n", escapedTitle)
 		check(err)
 	}
