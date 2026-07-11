@@ -1,0 +1,20 @@
+Usage: {{.ProgName}} <markdown-filename> [-nocss] [-title <title>] [-header "<header-content>"]...
+
+Converts a Markdown file into an HTML file.
+
+Options:
+  -nocss                     Do not include default CSS in the output HTML.
+  -title <title>             Set the title of the HTML document.
+  -header "<header-content>" Append a custom string to the output before the body
+                             (e.g., custom <meta> tags, <script>, or <style>).
+                             Can be specified multiple times.
+
+Examples:
+  # Basic conversion with CSS
+  {{.ProgName}} README.md
+
+  # Conversion without CSS
+  {{.ProgName}} README.md -nocss
+
+  # Set a custom title and add meta charset
+  {{.ProgName}} README.md -title "My Page" -header "<meta charset='utf-8'>"
