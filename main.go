@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"fmt"
 	"html"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,30 +17,29 @@ var usageTmpl string
 
 func check(e error) {
 	if e != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", e)
-		os.Exit(1)
+		log.Fatalf("error: %v", e)
 	}
 }
 
 func usage() {
 	tmpl, err := template.New("usage").Parse(usageTmpl)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error parsing usage template: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("error parsing usage template: %v", err)
 	}
 	data := struct {
 		ProgName string
 	}{
 		ProgName: os.Args[0],
 	}
-	err = tmpl.Execute(os.Stderr, data)
+	err = tmpl.Execute(log.Writer(), data)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error executing usage template: %v\n", err)
+		log.Printf("error executing usage template: %v", err)
 	}
 	os.Exit(1)
 }
 
 func main() {
+	log.SetFlags(0)
 	if len(os.Args) < 2 {
 		usage()
 	}
@@ -61,7 +61,7 @@ func main() {
 				title = args[i+1]
 				i++
 			} else {
-				fmt.Fprintf(os.Stderr, "error: missing argument for -title\n")
+				log.Printf("error: missing argument for -title")
 				usage()
 			}
 		} else if arg == "-header" {
@@ -69,14 +69,14 @@ func main() {
 				headers = append(headers, args[i+1])
 				i++
 			} else {
-				fmt.Fprintf(os.Stderr, "error: missing argument for -header\n")
+				log.Printf("error: missing argument for -header")
 				usage()
 			}
 		} else if strings.HasPrefix(arg, "-") {
-			fmt.Fprintf(os.Stderr, "error: unknown flag %s\n", arg)
+			log.Printf("error: unknown flag %s", arg)
 			usage()
 		} else if fname != "" {
-			fmt.Fprintf(os.Stderr, "error: multiple input files specified\n")
+			log.Printf("error: multiple input files specified")
 			usage()
 		} else {
 			fname = arg
@@ -84,14 +84,13 @@ func main() {
 	}
 
 	if fname == "" {
-		fmt.Fprintf(os.Stderr, "error: missing markdown filename\n")
+		log.Printf("error: missing markdown filename")
 		usage()
 	}
 
 	ext := filepath.Ext(fname)
 	if strings.ToLower(ext) != ".md" {
-		fmt.Fprintf(os.Stderr, "error: input file must be a markdown file (.md)\n")
-		os.Exit(1)
+		log.Fatalf("error: input file must be a markdown file (.md)")
 	}
 
 	base := strings.TrimSuffix(fname, ext)
@@ -101,8 +100,7 @@ func main() {
 
 	defer func() {
 		if err := wfile.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			os.Exit(1)
+			log.Fatalf("error: %v", err)
 		}
 	}()
 	writer := bufio.NewWriter(wfile)
@@ -125,7 +123,7 @@ func main() {
 
 	defer func() {
 		if err := rfile.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "error closing input file: %v\n", err)
+			log.Printf("error closing input file: %v", err)
 		}
 	}()
 	reader := bufio.NewReader(rfile)
