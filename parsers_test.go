@@ -5,18 +5,8 @@ import (
 	"testing"
 )
 
-var (
-	headingRegExp    = regexp.MustCompile(`(^#{1,6}) (.+)`)
-	headingInRegExp  = regexp.MustCompile(`^ *- +(#{1,6}) (.+)`)
-	listRegExp       = regexp.MustCompile(`^( *)- (.+)`)
-	linkRegExp       = regexp.MustCompile(`.*(\[.+?\])(\(.+?\)).*`)
-	emphasisRegExp   = regexp.MustCompile(`.*(\*.+\*).*|.*(\_.+\_).*`)
-	strongRegExp     = regexp.MustCompile(`.*(\*\*.+\*\*).*|.*(\_\_.+\_\_).*`)
-	horizontalRegExp = regexp.MustCompile(`^-{3}|_{3}|\*{3}`)
-	whitespaceRegExp = regexp.MustCompile(`^( +)(.*)`)
-)
-
 func TestMatchStrong(t *testing.T) {
+	strongRegExp := regexp.MustCompile(`.*(\*\*.+\*\*).*|.*(\_\_.+\_\_).*`)
 	tests := []string{
 		"**hello**",
 		"__hello__",
@@ -41,6 +31,7 @@ func TestMatchStrong(t *testing.T) {
 }
 
 func TestMatchEmphasis(t *testing.T) {
+	emphasisRegExp := regexp.MustCompile(`.*(\*.+\*).*|.*(\_.+\_).*`)
 	tests := []string{
 		"*hello*",
 		"_hello_",
@@ -65,6 +56,7 @@ func TestMatchEmphasis(t *testing.T) {
 }
 
 func TestMatchLink(t *testing.T) {
+	linkRegExp := regexp.MustCompile(`.*(\[.+?\])(\(.+?\)).*`)
 	tests := []string{
 		"[a](b)",
 		"x [a](b) y",
@@ -86,6 +78,7 @@ func TestMatchLink(t *testing.T) {
 }
 
 func TestMatchHeadingIn(t *testing.T) {
+	headingInRegExp := regexp.MustCompile(`^ *- +(#{1,6}) (.+)`)
 	tests := []string{
 		"- # h1",
 		"  - ## h2",
@@ -107,6 +100,7 @@ func TestMatchHeadingIn(t *testing.T) {
 }
 
 func TestMatchList(t *testing.T) {
+	listRegExp := regexp.MustCompile(`^( *)- (.+)`)
 	tests := []string{
 		"- a",
 		"  - b",
@@ -125,6 +119,7 @@ func TestMatchList(t *testing.T) {
 }
 
 func TestMatchHeading(t *testing.T) {
+	headingRegExp := regexp.MustCompile(`(^#{1,6}) (.+)`)
 	tests := []string{
 		"# h1",
 		"## h2",
@@ -145,6 +140,7 @@ func TestMatchHeading(t *testing.T) {
 }
 
 func TestMatchHorizontal(t *testing.T) {
+	horizontalRegExp := regexp.MustCompile(`^-{3}|_{3}|\*{3}`)
 	tests := []string{
 		"---",
 		"___",
@@ -167,6 +163,7 @@ func TestMatchHorizontal(t *testing.T) {
 }
 
 func TestMatchWhitespace(t *testing.T) {
+	whitespaceRegExp := regexp.MustCompile(`^( +)(.*)`)
 	tests := []string{
 		" a",
 		"  a",
