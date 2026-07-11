@@ -17,16 +17,14 @@ var usageTmpl string
 
 func check(e error) {
 	if e != nil {
-		log.Printf("error: %v", e)
-		os.Exit(1)
+		log.Fatalf("error: %v", e)
 	}
 }
 
 func usage() {
 	tmpl, err := template.New("usage").Parse(usageTmpl)
 	if err != nil {
-		log.Printf("error parsing usage template: %v", err)
-		os.Exit(1)
+		log.Fatalf("error parsing usage template: %v", err)
 	}
 	data := struct {
 		ProgName string
@@ -41,6 +39,7 @@ func usage() {
 }
 
 func main() {
+	log.SetFlags(0)
 	if len(os.Args) < 2 {
 		usage()
 	}
@@ -91,8 +90,7 @@ func main() {
 
 	ext := filepath.Ext(fname)
 	if strings.ToLower(ext) != ".md" {
-		log.Printf("error: input file must be a markdown file (.md)")
-		os.Exit(1)
+		log.Fatalf("error: input file must be a markdown file (.md)")
 	}
 
 	base := strings.TrimSuffix(fname, ext)
@@ -102,8 +100,7 @@ func main() {
 
 	defer func() {
 		if err := wfile.Close(); err != nil {
-			log.Printf("error: %v", err)
-			os.Exit(1)
+			log.Fatalf("error: %v", err)
 		}
 	}()
 	writer := bufio.NewWriter(wfile)
